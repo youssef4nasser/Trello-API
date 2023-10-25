@@ -7,18 +7,12 @@ export const validationAddTask = Joi.object({
     assignTo: Joi.string().trim().pattern(/^[0-9a-fA-F]{24}$/).required().messages({
       'string.pattern.base': 'Invalid User ID format for assignTo',
     }),
-    token: Joi.string().trim().required().pattern(/^Bearer [A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$/)
 }).required()
-
-export const validationTokenTasks = Joi.object({
-  token: Joi.string().trim().required().pattern(/^Bearer [A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$/)
-});
 
 export const validationGetTasksAssignToAnyOne = Joi.object({
   id: Joi.string().trim().pattern(/^[0-9a-fA-F]{24}$/).required().messages({
     'string.pattern.base': 'Invalid ID format',
   }),
-  token: Joi.string().trim().required().pattern(/^Bearer [A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$/)
 }).required()
 
 export const validationUpdateTask = Joi.object({
@@ -32,7 +26,6 @@ export const validationUpdateTask = Joi.object({
   id: Joi.string().trim().pattern(/^[0-9a-fA-F]{24}$/).required().messages({
     'string.pattern.base': 'Invalid Task ID format',
   }),
-  token: Joi.string().trim().required().pattern(/^Bearer [A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$/)
 }).required()
 
 export const validationDeleteTask = Joi.object({

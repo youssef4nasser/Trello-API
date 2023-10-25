@@ -5,12 +5,6 @@ import { asyncHandler } from "../../utils/errorHandling.js";
 
 export const addTask = asyncHandler(
     async (req, res, next) => {
-        if(req.user.isDeleted == true ){  // if isDeleted == true that means => user Deleted
-            return next(new Error("User is deleted, logIn First"))
-        }
-        if(req.user.isOnline == false ){
-            return next(new Error("User is offline, logIn First"))
-        }
         const { title, description, deadline, assignTo } = req.body;
 
         const userId = await userModel.findById(assignTo);
@@ -34,109 +28,86 @@ export const addTask = asyncHandler(
 
 export const getAllTasks = asyncHandler(
     async (req, res, next) => {
-    if(req.user.isDeleted == true ){  // if isDeleted == true that means => user Deleted
-        return next(new Error("User is deleted, logIn First"))
-    }
-    if(req.user.isOnline == false ){
-        return next(new Error("User is offline, logIn First"))
-    }
-    const tasks = await taskModel.find().populate({
-      path: 'assignTo',
-      select: '_id userName email gender',
-    }).populate({
-      path: 'createdBy',
-      select: '_id userName email gender',
-    });
+    const tasks = await taskModel.find({}).populate([
+        {
+            path: 'assignTo',
+            select: '_id userName email gender',
+        },
+        {
+            path: 'createdBy',
+            select: '_id userName email gender',
+        }
+    ])
     return res.status(200).json({ message: 'Tasks fetched successfully', tasks });
 });
   
 export const getAllCreatedtasks = asyncHandler(
     async (req, res, next) => {
-        if(req.user.isDeleted == true ){  // if isDeleted == true that means => user Deleted
-            return next(new Error("User is deleted, logIn First"))
-        }
-        if(req.user.isOnline == false ){
-            return next(new Error("User is offline, logIn First"))
-        }
-        const tasks = await taskModel.find({ createdBy: req.user._id }).populate({
-            path: 'assignTo',
-            select: '_id userName email gender',
-        }).populate({
-            path: 'createdBy',
-            select: '_id userName email gender',
-        });
+        const tasks = await taskModel.find({ createdBy: req.user._id }).populate([
+            {
+                path: 'assignTo',
+                select: '_id userName email gender',
+            },
+            {
+                path: 'createdBy',
+                select: '_id userName email gender',
+            }
+        ])
         return res.status(200).json({ message: 'Tasks fetched successfully', tasks });
     }
 )
 
 export const getAllTasksAssignToMe = asyncHandler(
     async (req, res, next) => {
-        if(req.user.isDeleted == true ){  // if isDeleted == true that means => user Deleted
-            return next(new Error("User is deleted, logIn First"))
-        }
-        if(req.user.isOnline == false ){
-            return next(new Error("User is offline, logIn First"))
-        }
-        const tasks = await taskModel.find({ assignTo: req.user._id }).populate({
-            path: 'assignTo',
-            select: '_id userName email gender',
-        }).populate({
-            path: 'createdBy',
-            select: '_id userName email gender',
-        });
+        const tasks = await taskModel.find({ assignTo: req.user._id }).populate([
+            {
+                path: 'assignTo',
+                select: '_id userName email gender',
+            },
+            {
+                path: 'createdBy',
+                select: '_id userName email gender',
+            }
+        ])
         return res.status(200).json({ message: 'Tasks fetched successfully', tasks });
     }
 )
 
 export const getAllLateTasks = asyncHandler(
     async (req, res, next) => {
-        if(req.user.isDeleted == true ){  // if isDeleted == true that means => user Deleted
-            return next(new Error("User is deleted, logIn First"))
-        }
-        if(req.user.isOnline == false ){
-            return next(new Error("User is offline, logIn First"))
-        }
-        const tasks = await taskModel.find({ deadline: { $lt: new Date() } })
-        .populate({
-            path: 'assignTo',
-            select: '_id userName email gender',
-            }).populate({
+        const tasks = await taskModel.find({ deadline: { $lt: new Date() } }).populate([
+            {
+                path: 'assignTo',
+                select: '_id userName email gender',
+            },
+            {
                 path: 'createdBy',
                 select: '_id userName email gender',
-            });
-            return res.status(200).json({ message: 'Tasks fetched successfully', tasks });
+            }
+        ])
+        return res.status(200).json({ message: 'Tasks fetched successfully', tasks });
     }
 )
 
 export const getTasksAssignToAnyOne = asyncHandler(
     async (req, res, next) => {
-    if(req.user.isDeleted == true ){  // if isDeleted == true that means => user Deleted
-        return next(new Error("User is deleted, logIn First"))
-    }
-    if(req.user.isOnline == false ){
-        return next(new Error("User is offline, logIn First"))
-    }
     const { id } = req.params;
     const tasks = await taskModel.find({ assignTo: { $in: [id] } })
-      .populate({
-        path: 'assignTo',
-        select: '_id userName email gender',
-      })
-      .populate({
-        path: 'createdBy',
-        select: '_id userName email gender',
-      });
+    .populate([
+        {
+            path: 'assignTo',
+            select: '_id userName email gender',
+        },
+        {
+            path: 'createdBy',
+            select: '_id userName email gender',
+        }
+    ])
     return res.status(200).json({ message: 'Tasks fetched successfully', tasks });
 });
 
 export const updateTask = asyncHandler(
     async (req, res, next) => {
-        if(req.user.isDeleted == true ){  // if isDeleted == true that means => user Deleted
-            return next(new Error("User is deleted, logIn First"))
-        }
-        if(req.user.isOnline == false ){
-            return next(new Error("User is offline, logIn First"))
-        }
         const { id } = req.params;
         const { title, description, status, assignTo, deadline } = req.body;
         const task = await taskModel.findById(id);
@@ -147,10 +118,17 @@ export const updateTask = asyncHandler(
         if (task.createdBy.toString() !== req.user._id.toString()) {
             return res.status(401).json({ message: 'You are not authorized to update this task' });
         }
+
         const assignToId = await userModel.findById(assignTo);
         if (!assignToId) {
              return next(new Error(`User not found with ID ${assignTo}`));
         }
+
+        const deadlineDate = new Date(deadline);
+        if (deadlineDate.getTime() <= new Date()) {
+          return next(new Error(`Invalid deadline date: ${deadline}`));
+        }
+
         await taskModel.updateOne({_id: id}, {
             title,
             description,
@@ -164,12 +142,6 @@ export const updateTask = asyncHandler(
 
 export const deleteTask = asyncHandler(
     async (req, res, next) => {
-        if(req.user.isDeleted == true ){  // if isDeleted == true that means => user Deleted
-            return next(new Error("User is deleted, logIn First"))
-        }
-        if(req.user.isOnline == false ){
-            return next(new Error("User is offline, logIn First"))
-        }
         const { id } = req.params;
         const task = await taskModel.findById(id);
         if (!task) {
@@ -189,12 +161,6 @@ export const deleteTask = asyncHandler(
 
 export const attachmentToTask = asyncHandler(
     async (req, res, next) =>{
-        if(req.user.isDeleted == true ){  // if isDeleted == true that means => user Deleted
-            return next(new Error("User is deleted, logIn First"))
-        }
-        if(req.user.isOnline == false ){
-            return next(new Error("User is offline, logIn First"))
-        } 
         const { id } = req.params;
         const task = await taskModel.findById(id);
         if (!task) {
@@ -202,7 +168,8 @@ export const attachmentToTask = asyncHandler(
         }
         const attachmentToTask = []
         for (const file of req.files) {
-            const {secure_url, public_id} = await cloudinary.uploader.upload(file.path, {folder: `user/task/${req.user._id}`})
+            const {secure_url, public_id} = await cloudinary.uploader.upload(file.path,
+                  {folder: `user/task/${req.user._id}`})
             attachmentToTask.push( {secure_url, public_id})
         }
         await taskModel.findByIdAndUpdate(

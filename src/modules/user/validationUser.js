@@ -6,17 +6,9 @@ export const validationChangePassword = Joi.object({
     cPassword: Joi.string().required().valid(Joi.ref('newPassword')).messages({
       'any.only': 'Confirm Password must match the New Password',
     }).required(),
-    // validation Token comes from the heahder
-    token: Joi.string().trim().required().pattern(/^Bearer [A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$/)
 }).required()
 
 export const validationUpdateUser = Joi.object({
     userName: Joi.string().alphanum().min(3).max(20).required(),
     age: Joi.number().integer().min(18).max(95).required(),
-    // validation Token comes from the heahder
-    token: Joi.string().trim().required().pattern(/^Bearer [A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$/)
-});
-
-export const validationToken = Joi.object({
-    token: Joi.string().trim().required().pattern(/^Bearer [A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*$/)
 });

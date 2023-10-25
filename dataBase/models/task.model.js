@@ -18,9 +18,12 @@ const taskSchema = mongoose.Schema({
     },
     deadline: {
         type: Date,
-        default: Date.toString
+        required: true
     },
-    attachmentToTask:[{secure_url: String, public_id: String}]
+    attachmentToTask:[{
+        secure_url: String,
+        public_id: String
+    }]
 },{
     timestamps: true
 })

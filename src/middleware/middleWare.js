@@ -22,6 +22,12 @@ export const auth = asyncHandler(async (req, res, next)=>{
     if(!user){
         return next(new Error("User not found", {cause: 404}))
     }
+    if(user.isDeleted == true ){  // if isDeleted == true that means => user Deleted
+        return next(new Error("User is deleted, logIn First"))
+    }
+    if(user.isOnline == false ){
+        return next(new Error("User is offline, logIn First"))
+    }
     req.user = user;
     return next()
 })

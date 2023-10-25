@@ -32,8 +32,14 @@ const userSchema = mongoose.Schema({
         type: Boolean,
         default: false
     },
-    profileImage: {secure_url: String, public_id: String},
-    coverImages: [{secure_url: String, public_id: String}]
+    profileImage: {
+        secure_url: String,
+        public_id: String
+    },
+    coverImages: [{
+        secure_url: String,
+        public_id: String
+    }]
 })
 
 export const userModel = mongoose.model('User', userSchema)
